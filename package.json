@@ -3,7 +3,7 @@
   "private": true,
   "engines": {
     "node": ">=20.18.1",
-    "pnpm": "^9.14.2"
+    "pnpm": "^9.6.0"
   },
   "packageManager": "pnpm@9.14.2",
   "scripts": {
@@ -11,6 +11,7 @@
     "clean": "git clean -xdf node_modules",
     "clean:workspaces": "turbo run clean",
     "db:push": "turbo -F @acme/db push",
+    "db:pull": "turbo -F @acme/db pull",
     "db:studio": "turbo -F @acme/db studio",
     "dev": "turbo watch dev --continue",
     "dev:next": "turbo watch dev -F @acme/nextjs...",

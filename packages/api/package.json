@@ -7,7 +7,8 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
-    }
+    },
+    "./root": "./src/root.ts"
   },
   "license": "MIT",
   "scripts": {

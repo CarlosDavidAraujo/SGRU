@@ -1,10 +1,20 @@
 import { authRouter } from "./router/auth";
-import { postRouter } from "./router/post";
+import { callOriginsRouter } from "./router/call-origins";
+import { callTypesRouter } from "./router/call-types";
+import { callsRouter } from "./router/calls";
+import { emergenciesRouter } from "./router/emergencies";
+import { protocolsRouter } from "./router/protocols";
+import { usersRouter } from "./router/users";
 import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,
-  post: postRouter,
+  callOrigin: callOriginsRouter,
+  callTypes: callTypesRouter,
+  calls: callsRouter,
+  emergencies: emergenciesRouter,
+  protocols: protocolsRouter,
+  users: usersRouter,
 });
 
 // export type definition of API

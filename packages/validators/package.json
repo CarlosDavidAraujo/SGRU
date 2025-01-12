@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./src/*.ts"
     }
   },
   "license": "MIT",
@@ -19,6 +23,8 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@acme/db": "workspace:*",
+    "drizzle-zod": "^0.5.1",
     "zod": "catalog:"
   },
   "devDependencies": {

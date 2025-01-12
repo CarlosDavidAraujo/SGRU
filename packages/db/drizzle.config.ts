@@ -11,4 +11,7 @@ export default {
   dialect: "postgresql",
   dbCredentials: { url: nonPoolingUrl },
   casing: "snake_case",
+  introspect: {
+    casing: "camel",
+  },
 } satisfies Config;
