@@ -3,7 +3,6 @@ import { auth as middleware } from "@acme/auth";
 export default middleware((req) => {
   const { nextUrl } = req;
   const isAuthenticated = !!req.auth;
-  console.log(req.auth);
   if (!isAuthenticated && !["/login"].includes(nextUrl.pathname)) {
     return Response.redirect(new URL("/login", nextUrl));
   }

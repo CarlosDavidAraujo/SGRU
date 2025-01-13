@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+
+import type { UpsertEmergencySchema } from "@acme/validators/emergencies";
 import { Button } from "@acme/ui/button";
 import {
   Form,
@@ -15,22 +18,23 @@ import { upsertEmergencySchema } from "@acme/validators/emergencies";
 import { api } from "~/trpc/react";
 import { useProtocol } from "./protocol-provider";
 
+const defaultValues: UpsertEmergencySchema = {
+  city: "Fortaleza",
+  complement: "",
+  landmark: "",
+  neighborhood: "",
+  street: "",
+  streetNumber: 0,
+  title: "",
+  protocolId: 0,
+};
+
 export function UpsertEmergencyForm() {
   const { protocol } = useProtocol();
 
   const form = useForm({
     schema: upsertEmergencySchema,
-    defaultValues: {
-      city: "Fortaleza",
-      complement: "",
-      landmark: "",
-      neighborhood: "",
-      street: "",
-      streetNumber: "",
-      title: "",
-      protocolId: protocol?.id,
-    },
-    values: protocol?.emergency ? protocol.emergency : undefined,
+    values: protocol?.emergency ? protocol.emergency : defaultValues,
   });
 
   const utils = api.useUtils();
@@ -38,6 +42,14 @@ export function UpsertEmergencyForm() {
   const { mutate } = api.emergencies.upsert.useMutation({
     onSuccess: () => utils.protocols.ofMine.invalidate(),
   });
+
+  useEffect(() => {
+    if (protocol) {
+      form.setValue("protocolId", protocol.id);
+    } else {
+      form.reset();
+    }
+  }, [form, protocol]);
 
   return (
     <Form {...form}>
@@ -124,6 +136,7 @@ export function UpsertEmergencyForm() {
             <FormItem>
               <FormLabel>Complemento*</FormLabel>
               <FormControl>
+                {/* @ts-expect-error */}
                 <Input {...field} />
               </FormControl>
             </FormItem>

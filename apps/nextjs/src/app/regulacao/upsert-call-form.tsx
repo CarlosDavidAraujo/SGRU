@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+
+import type { UpsertCallSchema } from "@acme/validators/calls";
 import { Button } from "@acme/ui/button";
 import {
   Form,
@@ -22,31 +25,31 @@ import { upsertCallSchema } from "@acme/validators/calls";
 import { api } from "~/trpc/react";
 import { useProtocol } from "./protocol-provider";
 
+const defaultValues: UpsertCallSchema = {
+  codeArea: "085",
+  complain: "",
+  fone: "",
+  requesterName: "",
+  originId: 1,
+  typeId: 1,
+};
+
 export function UpsertCallForm() {
   const { protocol } = useProtocol();
 
   const form = useForm({
     schema: upsertCallSchema,
-    defaultValues: {
-      codeArea: 85,
-      complain: "",
-      fone: "",
-      requesterName: "",
-    },
-    values: protocol?.call
-      ? { ...protocol.call, typeId: protocol.call.typeId }
-      : undefined,
+    values: protocol?.call ? protocol.call : defaultValues,
   });
 
   const utils = api.useUtils();
 
   const { mutate } = api.calls.upsert.useMutation({
     onSuccess: async () => utils.protocols.ofMine.invalidate(),
-    onError: ({ message }) => console.log(message),
   });
 
-  const [callOrigins] = api.callOrigin.all.useSuspenseQuery();
-  const [callTypes] = api.callTypes.all.useSuspenseQuery();
+  const { data: callOrigins } = api.callOrigin.all.useQuery();
+  const { data: callTypes } = api.callTypes.all.useQuery();
 
   return (
     <Form {...form}>
@@ -109,7 +112,7 @@ export function UpsertCallForm() {
             <FormItem>
               <FormLabel>Origem da ligação*</FormLabel>
               <Select
-                value={field.value?.toString()}
+                value={field.value.toString()}
                 onValueChange={(value) => field.onChange(+value)}
               >
                 <FormControl>
@@ -118,7 +121,7 @@ export function UpsertCallForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {callOrigins.map((origin) => (
+                  {callOrigins?.map((origin) => (
                     <SelectItem key={origin.id} value={origin.id.toString()}>
                       {origin.description}
                     </SelectItem>
@@ -135,7 +138,7 @@ export function UpsertCallForm() {
             <FormItem>
               <FormLabel>Tipo de ligação</FormLabel>
               <Select
-                value={field.value?.toString()}
+                value={field.value.toString()}
                 onValueChange={(value) => field.onChange(+value)}
               >
                 <FormControl>
@@ -144,7 +147,7 @@ export function UpsertCallForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {callTypes.map((type) => (
+                  {callTypes?.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
                       {type.description}
                     </SelectItem>

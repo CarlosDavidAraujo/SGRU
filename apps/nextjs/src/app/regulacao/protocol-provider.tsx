@@ -8,7 +8,7 @@ import type { RouterOutputs } from "@acme/api";
 import { api } from "~/trpc/react";
 
 interface ProtocolContextValue {
-  protocol: RouterOutputs["protocols"]["ofMine"];
+  protocol?: RouterOutputs["protocols"]["ofMine"];
 }
 
 const ProtocolContext = createContext({} as ProtocolContextValue);
@@ -22,7 +22,16 @@ export const useProtocol = () => {
 };
 
 export const ProtocolProvider = ({ children }: { children: ReactNode }) => {
-  const [protocol] = api.protocols.ofMine.useSuspenseQuery();
+  const { data: protocol } = api.protocols.ofMine.useQuery();
+
+  const utils = api.useUtils();
+
+  api.protocols.onAuditInsert.useSubscription(undefined, {
+    onData: async () => {
+      await utils.emergencies.notFinished.invalidate();
+      await utils.protocols.ofMine.invalidate();
+    },
+  });
 
   return (
     <ProtocolContext.Provider value={{ protocol }}>

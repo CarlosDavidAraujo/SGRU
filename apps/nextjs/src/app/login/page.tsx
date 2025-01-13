@@ -23,7 +23,7 @@ export default function LoginPage() {
   });
 
   const onSubmit = form.handleSubmit((credentials) =>
-    signIn("credentials", { ...credentials }),
+    signIn("credentials", { ...credentials, redirectTo: "/regulacao" }),
   );
 
   return (
