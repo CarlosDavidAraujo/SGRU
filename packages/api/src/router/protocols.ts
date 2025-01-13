@@ -1,9 +1,11 @@
+import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 
 import { eq } from "@acme/db";
 import { protocolAudits, protocols } from "@acme/db/schema";
 
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { EVENTS } from "../events";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const protocolsRouter = createTRPCRouter({
   ofMine: protectedProcedure.query(async ({ ctx }) => {
@@ -39,6 +41,11 @@ export const protocolsRouter = createTRPCRouter({
           .where(eq(protocols.id, input.protocolId))
           .returning();
 
+        ctx.ee.emit(
+          EVENTS.PROTOCOL_AUDIT_INSERTED,
+          EVENTS.PROTOCOL_AUDIT_INSERTED,
+        );
+
         return openedProtocol ?? null;
       }),
     ),
@@ -60,6 +67,11 @@ export const protocolsRouter = createTRPCRouter({
         userId,
         action: "stand_by",
       });
+
+      ctx.ee.emit(
+        EVENTS.PROTOCOL_AUDIT_INSERTED,
+        EVENTS.PROTOCOL_AUDIT_INSERTED,
+      );
 
       return closedProtocol ?? null;
     }),
@@ -83,6 +95,11 @@ export const protocolsRouter = createTRPCRouter({
         userId,
         action: "queue",
       });
+
+      ctx.ee.emit(
+        EVENTS.PROTOCOL_AUDIT_INSERTED,
+        EVENTS.PROTOCOL_AUDIT_INSERTED,
+      );
 
       return protocol ?? null;
     }),
@@ -109,6 +126,11 @@ export const protocolsRouter = createTRPCRouter({
           action: "send",
         });
 
+        ctx.ee.emit(
+          EVENTS.PROTOCOL_AUDIT_INSERTED,
+          EVENTS.PROTOCOL_AUDIT_INSERTED,
+        );
+
         return protocol ?? null;
       }),
     ),
@@ -132,7 +154,26 @@ export const protocolsRouter = createTRPCRouter({
         action: "finish",
       });
 
+      ctx.ee.emit(
+        EVENTS.PROTOCOL_AUDIT_INSERTED,
+        EVENTS.PROTOCOL_AUDIT_INSERTED,
+      );
+
       return protocol ?? null;
     }),
   ),
+
+  onAuditInsert: publicProcedure.subscription(({ ctx }) => {
+    return observable<string>((emit) => {
+      const listener = (eventName: string) => {
+        emit.next(eventName);
+      };
+
+      ctx.ee.on(EVENTS.PROTOCOL_AUDIT_INSERTED, listener);
+
+      return () => {
+        ctx.ee.off(EVENTS.PROTOCOL_AUDIT_INSERTED, listener);
+      };
+    });
+  }),
 });

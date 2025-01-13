@@ -10,7 +10,6 @@ import { skipCSRFCheck } from "@auth/core";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { decode, encode } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
-import Resend from "next-auth/providers/resend";
 import { v4 as uuid } from "uuid";
 
 import { db } from "@acme/db/client";
@@ -26,18 +25,16 @@ declare module "next-auth" {
   }
 }
 
-const adapter = DrizzleAdapter(db, {
+/* const adapter = DrizzleAdapter(db, {
   usersTable: users,
   sessionsTable: sessions,
   verificationTokensTable: verificationTokens,
 });
-
+ */
 export const isSecureContext = env.NODE_ENV !== "development";
 
-export const authConfig = (
-  req: NextRequest | undefined,
-): Awaitable<NextAuthConfig> => ({
-  adapter,
+export const authConfig: NextAuthConfig = {
+  // adapter,
   // In development, we need to skip checks to allow Expo to work
   ...(!isSecureContext
     ? {
@@ -47,10 +44,6 @@ export const authConfig = (
     : {}),
   secret: env.AUTH_SECRET,
   providers: [
-    /* Resend({
-      from: "onboarding@resend.dev",
-      apiKey: env.AUTH_RESEND_KEY,
-    }), */
     CredentialsProvider({
       credentials: {
         email: {
@@ -65,13 +58,18 @@ export const authConfig = (
       async authorize(credentials) {
         if (!credentials.email || !credentials.password) return null;
 
-        const user = await db.query.users.findFirst({
+        /*  const user = await db.query.users.findFirst({
           where: ({ email }, { eq }) => eq(email, credentials.email as string),
         });
 
-        if (!user) return null;
+        console.log("USUAAAAARIIOOOOO", user); */
+        //if (!user) return null;
 
-        return user;
+        return {
+          id: "1b29b4b8-d638-459f-bc3f-0c15ba344d0d",
+          email: credentials.email as string,
+          name: "David",
+        };
       },
     }),
   ],
@@ -80,89 +78,27 @@ export const authConfig = (
   },
   pages: {
     signIn: "/login",
-    //verifyRequest: "/verify-request",
   },
   callbacks: {
-    session: async (opts) => {
-      const sessionToken = cookies().get("authjs.session-token");
-      console.log(sessionToken?.value);
-      const session = await adapter.getSessionAndUser?.(sessionToken?.value);
-
+    session: ({ session, token }) => {
       return {
+        ...session,
         user: {
-          email: session?.user.email!,
-          id: session?.user.id!,
-          name: session?.user.name!,
+          ...session.user,
+          id: token.id as string,
         },
-        expires: session?.session.expires,
       };
     },
-    jwt: ({ token, user }) => {
+    jwt: ({ token, user, trigger }) => {
       if (user) {
         token.id = user.id;
       }
       return token;
     },
-    async signIn({ user }) {
-      if (req?.method === "POST") {
-        if (user) {
-          const sessionToken = uuid();
-          const sessionExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-          await adapter.createSession?.({
-            sessionToken: sessionToken,
-            userId: user.id!,
-            expires: sessionExpiry,
-          });
-
-          cookies().set("authjs.session-token", sessionToken, {
-            expires: sessionExpiry,
-          });
-        }
-      }
-
-      return true;
-    },
-    /*   async signIn(params) {
-      const user = await db.query.users.findFirst({
-        where: ({ email }, { eq }) => eq(email, params.user.email!),
-      });
-
-      if (!user) return false;
-      return true;
-    }, */
   },
-  jwt: {
-    encode: async (params) => {
-      if (
-        //req.query.nextauth.includes("callback") &&
-        //req.query.nextauth.includes("credentials") &&
-        req?.method === "POST"
-      ) {
-        const cookie = cookies().get("authjs.session-token");
+};
 
-        if (cookie) return cookie.value;
-        else return "";
-      }
-      // Revert to default behaviour when not in the credentials provider callback flow
-      return encode(params);
-    },
-    decode: async (params) => {
-      if (
-        // req.query.nextauth.includes("callback") &&
-        // req.query.nextauth.includes("credentials") &&
-        req?.method === "POST"
-      ) {
-        return null;
-      }
-
-      // Revert to default behaviour when not in the credentials provider callback flow
-      return decode(params);
-    },
-  },
-});
-
-export const validateToken = async (
+/* export const validateToken = async (
   token: string,
 ): Promise<NextAuthSession | null> => {
   const sessionToken = token.slice("Bearer ".length);
@@ -181,3 +117,4 @@ export const invalidateSessionToken = async (token: string) => {
   const sessionToken = token.slice("Bearer ".length);
   await adapter.deleteSession?.(sessionToken);
 };
+ */

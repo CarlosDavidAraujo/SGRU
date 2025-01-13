@@ -27,6 +27,14 @@ export const emergenciesRouter = createTRPCRouter({
       .where(eq(protocolAudits.action, "finish"));
 
     const notFinishedEmergencies = await ctx.db.query.emergencies.findMany({
+      with: {
+        protocol: {
+          columns: {
+            ownerId: true,
+            userId: true,
+          },
+        },
+      },
       where: () => notInArray(emergencies.protocolId, finishedProtocolIdsQuery),
     });
 

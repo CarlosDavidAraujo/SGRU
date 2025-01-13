@@ -6,6 +6,7 @@
  * tl;dr - this is where all the tRPC server stuff is created and plugged in.
  * The pieces you will need to use are documented accordingly near the end
  */
+import EventEmitter from "events";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
@@ -13,6 +14,8 @@ import { ZodError } from "zod";
 import type { Session } from "@acme/auth";
 import { auth } from "@acme/auth";
 import { db } from "@acme/db/client";
+
+const ee = new EventEmitter();
 
 /**
  * Isomorphic Session getter for API requests
@@ -41,7 +44,7 @@ export const createTRPCContext = async (opts: {
   headers: Headers;
   session: Session | null;
 }) => {
-  const authToken = opts.headers.get("Authorization") ?? null;
+  //const authToken = opts.headers.get("Authorization") ?? null;
   const session = await auth();
 
   const source = opts.headers.get("x-trpc-source") ?? "unknown";
@@ -50,7 +53,8 @@ export const createTRPCContext = async (opts: {
   return {
     session,
     db,
-    token: authToken,
+    ee,
+    //token: authToken,
   };
 };
 
